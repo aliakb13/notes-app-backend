@@ -1,9 +1,8 @@
 /* eslint-disable no-underscore-dangle */
-/* eslint-disable import/no-extraneous-dependencies */
 const { nanoid } = require('nanoid');
 const { Pool } = require('pg');
 const InvariantError = require('../../exceptions/InvariantError');
-const { mapDBToModel } = require('../../utils/index');
+const { mapDBToModel } = require('../../utils');
 const NotFoundError = require('../../exceptions/NotFoundError');
 
 class NotesService {
@@ -26,12 +25,14 @@ class NotesService {
     if (!result.rows[0].id) {
       throw new InvariantError('Catatan gagal ditambahkan');
     }
+    // console.log(result, +' from addNote');
 
     return result.rows[0].id;
   }
 
   async getNotes() {
     const result = await this._pool.query('SELECT * FROM notes');
+    // console.log(result, +' from getNotes');
     return result.rows.map(mapDBToModel);
   }
 
@@ -47,13 +48,14 @@ class NotesService {
       throw new NotFoundError('Catatan tidak ditemukan');
     }
 
+    // console.log(result, +' from getNote');
     return result.rows.map(mapDBToModel)[0];
   }
 
   async editNoteById(id, { title, body, tags }) {
     const updatedAt = new Date().toISOString();
     const query = {
-      text: 'UPDATE notes SET title = $1, body = $2, tags = $3, updated_at = #4 WHERE id = $5 returning id',
+      text: 'UPDATE notes SET title = $1, body = $2, tags = $3, updated_at = $4 WHERE id = $5 RETURNING id',
       values: [title, body, tags, updatedAt, id],
     };
 
@@ -62,6 +64,7 @@ class NotesService {
     if (!result.rows.length) {
       throw new NotFoundError('Gagal memperbarui catatan, Id tidak ditemukan');
     }
+    // console.log(result, +' from editNote');
   }
 
   async deleteNoteById(id) {
@@ -75,6 +78,7 @@ class NotesService {
     if (!result.rows.length) {
       throw new NotFoundError('Catatan gagal dihapus, Id tidak ditemukan');
     }
+    // console.log(result, +' from deleteNote');
   }
 }
 
