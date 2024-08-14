@@ -72,7 +72,7 @@ class NotesService {
 
   async deleteNoteById(id) {
     const query = {
-      text: 'DELETE FROM notes WHERE id = $1 RETURNING ID',
+      text: 'DELETE FROM notes WHERE id = $1 RETURNING id',
       values: [id],
     };
 
@@ -86,7 +86,7 @@ class NotesService {
 
   async verifyNoteOwner(id, owner) {
     const query = {
-      text: 'SELECT * FROM notes where id = $1',
+      text: 'SELECT * FROM notes WHERE id = $1',
       values: [id],
     };
 
