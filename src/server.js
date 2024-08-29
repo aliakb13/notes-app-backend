@@ -26,6 +26,12 @@ const collaborations = require('./api/collaborations');
 const CollaborationsService = require('./services/postgres/CollaborationsService');
 const CollaborationsValidator = require('./validator/collaborations');
 
+// Exports
+// eslint-disable-next-line no-underscore-dangle
+const _exports = require('./api/exports');
+const ProducerService = require('./services/rabbitmq/ProducerService');
+const ExportsValidator = require('./validator/exports');
+
 const init = async () => {
   const collaborationsService = new CollaborationsService();
   const notesService = new NotesService(collaborationsService);
@@ -98,21 +104,41 @@ const init = async () => {
         validator: CollaborationsValidator,
       },
     },
+    {
+      plugin: _exports,
+      options: {
+        service: ProducerService,
+        validator: ExportsValidator,
+      },
+    },
   ]);
 
   server.ext('onPreResponse', (request, h) => {
     const { response } = request;
     // console.log(response);
 
-    if (response instanceof ClientError) {
+    if (response instanceof Error) {
+      // penanganan client error secara internal
+      if (response instanceof ClientError) {
+        const newResponse = h.response({
+          status: 'fail',
+          message: response.message,
+        });
+        newResponse.code(response.statusCode);
+        return newResponse;
+      }
+
+      if (!response.server) {
+        return h.continue;
+      }
+
       const newResponse = h.response({
-        status: 'fail',
+        status: 'error 500',
         message: response.message,
       });
-      newResponse.code(response.statusCode);
+      newResponse.code(500);
       return newResponse;
     }
-
     return h.continue;
   });
 
