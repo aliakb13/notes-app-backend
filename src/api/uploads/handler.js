@@ -9,7 +9,7 @@ class UploadsHandler {
 
   async postUploadImageHandler(request, h) {
     const { data } = request.payload;
-    // console.log(data);
+    console.log(data);
     // console.log(data.hapi);
     this._validator.validateImageHeaders(data.hapi.headers);
 
